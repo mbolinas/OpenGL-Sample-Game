@@ -33,12 +33,18 @@ float box_width = 9.0;
 float box_height = 5.0;
 float box_depth = 7.0;
 
+//paddle proj and viewmatrices
+glm::mat4 pMatrix = glm::perspective(45.0f, 1024.0f / 768.0f, 0.1f, 40.0f);
+glm::mat4 vMatrix = glm::lookAt(glm::vec3(-6.0, 6.0, 8.0), glm::vec3(box_width / 2.0, box_height / 2.0, box_depth / 2.0), glm::vec3(0, 1, 0));
+
 // for paddles
 GLuint p1_vertexbuffer;
-GLuint p2_vertexbuffer;
 glm::vec3 p1;
-glm::vec3 p2;
+glm::vec3 p1Pos = glm::vec3(1.0,1.0,1.0);
 
+GLuint p2_vertexbuffer;
+glm::vec3 p2;
+glm::vec3 p2Pos = glm::vec3(box_width - 1.0,1.0,1.0);
 
 void key_callback(GLFWwindow *window, int key, int scancode, int action, int mods)
 {
@@ -220,43 +226,42 @@ void init_paddles()
 	// box geometry with corner at origin
 
 	static const GLfloat p1_vertex_buffer_data[] = {
-		-1.0f,-1.0f,-1.0f, // triangle 1 : begin
-    -1.0f,-1.0f, 1.0f,
-    -1.0f, 1.0f, 1.0f, // triangle 1 : end
-    1.0f, 1.0f,-1.0f, // triangle 2 : begin
-    -1.0f,-1.0f,-1.0f,
-    -1.0f, 1.0f,-1.0f, // triangle 2 : end
-    1.0f,-1.0f, 1.0f,
-    -1.0f,-1.0f,-1.0f,
-    1.0f,-1.0f,-1.0f,
-    1.0f, 1.0f,-1.0f,
-    1.0f,-1.0f,-1.0f,
-    -1.0f,-1.0f,-1.0f,
-    -1.0f,-1.0f,-1.0f,
-    -1.0f, 1.0f, 1.0f,
-    -1.0f, 1.0f,-1.0f,
-    1.0f,-1.0f, 1.0f,
-    -1.0f,-1.0f, 1.0f,
-    -1.0f,-1.0f,-1.0f,
-    -1.0f, 1.0f, 1.0f,
-    -1.0f,-1.0f, 1.0f,
-    1.0f,-1.0f, 1.0f,
-    1.0f, 1.0f, 1.0f,
-    1.0f,-1.0f,-1.0f,
-    1.0f, 1.0f,-1.0f,
-    1.0f,-1.0f,-1.0f,
-    1.0f, 1.0f, 1.0f,
-    1.0f,-1.0f, 1.0f,
-    1.0f, 1.0f, 1.0f,
-    1.0f, 1.0f,-1.0f,
-    -1.0f, 1.0f,-1.0f,
-    1.0f, 1.0f, 1.0f,
-    -1.0f, 1.0f,-1.0f,
-    -1.0f, 1.0f, 1.0f,
-    1.0f, 1.0f, 1.0f,
-    -1.0f, 1.0f, 1.0f,
-    1.0f,-1.0f, 1.0f
-	};
+		-1.0f, -1.0f, -1.0f, // triangle 1 : begin
+		-1.0f, -1.0f, 1.0f,
+		-1.0f, 1.0f, 1.0f, // triangle 1 : end
+		1.0f, 1.0f, -1.0f, // triangle 2 : begin
+		-1.0f, -1.0f, -1.0f,
+		-1.0f, 1.0f, -1.0f, // triangle 2 : end
+		1.0f, -1.0f, 1.0f,
+		-1.0f, -1.0f, -1.0f,
+		1.0f, -1.0f, -1.0f,
+		1.0f, 1.0f, -1.0f,
+		1.0f, -1.0f, -1.0f,
+		-1.0f, -1.0f, -1.0f,
+		-1.0f, -1.0f, -1.0f,
+		-1.0f, 1.0f, 1.0f,
+		-1.0f, 1.0f, -1.0f,
+		1.0f, -1.0f, 1.0f,
+		-1.0f, -1.0f, 1.0f,
+		-1.0f, -1.0f, -1.0f,
+		-1.0f, 1.0f, 1.0f,
+		-1.0f, -1.0f, 1.0f,
+		1.0f, -1.0f, 1.0f,
+		1.0f, 1.0f, 1.0f,
+		1.0f, -1.0f, -1.0f,
+		1.0f, 1.0f, -1.0f,
+		1.0f, -1.0f, -1.0f,
+		1.0f, 1.0f, 1.0f,
+		1.0f, -1.0f, 1.0f,
+		1.0f, 1.0f, 1.0f,
+		1.0f, 1.0f, -1.0f,
+		-1.0f, 1.0f, -1.0f,
+		1.0f, 1.0f, 1.0f,
+		-1.0f, 1.0f, -1.0f,
+		-1.0f, 1.0f, 1.0f,
+		1.0f, 1.0f, 1.0f,
+		-1.0f, 1.0f, 1.0f,
+		1.0f, -1.0f, 1.0f};
 
 	glGenBuffers(1, &p1_vertexbuffer);
 	glBindBuffer(GL_ARRAY_BUFFER, p1_vertexbuffer);
@@ -264,46 +269,45 @@ void init_paddles()
 
 	// p2
 
-		// box geometry with corner at origin
+	// box geometry with corner at origin
 
 	static const GLfloat p2_vertex_buffer_data[] = {
-		-1.0f,-1.0f,-1.0f, // triangle 1 : begin
-    -1.0f,-1.0f, 1.0f,
-    -1.0f, 1.0f, 1.0f, // triangle 1 : end
-    1.0f, 1.0f,-1.0f, // triangle 2 : begin
-    -1.0f,-1.0f,-1.0f,
-    -1.0f, 1.0f,-1.0f, // triangle 2 : end
-    1.0f,-1.0f, 1.0f,
-    -1.0f,-1.0f,-1.0f,
-    1.0f,-1.0f,-1.0f,
-    1.0f, 1.0f,-1.0f,
-    1.0f,-1.0f,-1.0f,
-    -1.0f,-1.0f,-1.0f,
-    -1.0f,-1.0f,-1.0f,
-    -1.0f, 1.0f, 1.0f,
-    -1.0f, 1.0f,-1.0f,
-    1.0f,-1.0f, 1.0f,
-    -1.0f,-1.0f, 1.0f,
-    -1.0f,-1.0f,-1.0f,
-    -1.0f, 1.0f, 1.0f,
-    -1.0f,-1.0f, 1.0f,
-    1.0f,-1.0f, 1.0f,
-    1.0f, 1.0f, 1.0f,
-    1.0f,-1.0f,-1.0f,
-    1.0f, 1.0f,-1.0f,
-    1.0f,-1.0f,-1.0f,
-    1.0f, 1.0f, 1.0f,
-    1.0f,-1.0f, 1.0f,
-    1.0f, 1.0f, 1.0f,
-    1.0f, 1.0f,-1.0f,
-    -1.0f, 1.0f,-1.0f,
-    1.0f, 1.0f, 1.0f,
-    -1.0f, 1.0f,-1.0f,
-    -1.0f, 1.0f, 1.0f,
-    1.0f, 1.0f, 1.0f,
-    -1.0f, 1.0f, 1.0f,
-    1.0f,-1.0f, 1.0f
-	};
+		-1.0f, -1.0f, -1.0f, // triangle 1 : begin
+		-1.0f, -1.0f, 1.0f,
+		-1.0f, 1.0f, 1.0f, // triangle 1 : end
+		1.0f, 1.0f, -1.0f, // triangle 2 : begin
+		-1.0f, -1.0f, -1.0f,
+		-1.0f, 1.0f, -1.0f, // triangle 2 : end
+		1.0f, -1.0f, 1.0f,
+		-1.0f, -1.0f, -1.0f,
+		1.0f, -1.0f, -1.0f,
+		1.0f, 1.0f, -1.0f,
+		1.0f, -1.0f, -1.0f,
+		-1.0f, -1.0f, -1.0f,
+		-1.0f, -1.0f, -1.0f,
+		-1.0f, 1.0f, 1.0f,
+		-1.0f, 1.0f, -1.0f,
+		1.0f, -1.0f, 1.0f,
+		-1.0f, -1.0f, 1.0f,
+		-1.0f, -1.0f, -1.0f,
+		-1.0f, 1.0f, 1.0f,
+		-1.0f, -1.0f, 1.0f,
+		1.0f, -1.0f, 1.0f,
+		1.0f, 1.0f, 1.0f,
+		1.0f, -1.0f, -1.0f,
+		1.0f, 1.0f, -1.0f,
+		1.0f, -1.0f, -1.0f,
+		1.0f, 1.0f, 1.0f,
+		1.0f, -1.0f, 1.0f,
+		1.0f, 1.0f, 1.0f,
+		1.0f, 1.0f, -1.0f,
+		-1.0f, 1.0f, -1.0f,
+		1.0f, 1.0f, 1.0f,
+		-1.0f, 1.0f, -1.0f,
+		-1.0f, 1.0f, 1.0f,
+		1.0f, 1.0f, 1.0f,
+		-1.0f, 1.0f, 1.0f,
+		1.0f, -1.0f, 1.0f};
 
 	glGenBuffers(1, &p2_vertexbuffer);
 	glBindBuffer(GL_ARRAY_BUFFER, p2_vertexbuffer);
@@ -350,9 +354,11 @@ void draw_box(glm::mat4 MVP)
 
 void draw_p1(glm::mat4 MVP)
 {
-		// make this transform available to shaders
+	// make this transform available to shaders
 
-	glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &MVP[0][0]);
+	glm::mat4 p1MVP = pMatrix * vMatrix * glm::translate(glm::mat4(1.0f), p1Pos);
+
+	glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &p1MVP[0][0]);
 
 	// 1st attribute buffer : vertices
 
@@ -373,9 +379,11 @@ void draw_p1(glm::mat4 MVP)
 
 void draw_p2(glm::mat4 MVP)
 {
-			// make this transform available to shaders
+	// make this transform available to shaders
 
-	glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &MVP[0][0]);
+	glm::mat4 p1MVP = pMatrix * vMatrix * glm::translate(glm::mat4(1.0f), p2Pos);
+
+	glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &p1MVP[0][0]);
 
 	// 1st attribute buffer : vertices
 
@@ -495,7 +503,7 @@ int main(void)
 	glm::mat4 ModelMatrix = glm::mat4(1.0);
 
 	//glm::mat4 ProjectionMatrix = glm::perspective(50.0f, (float) 1024 / 768, 0.1f, 35.0f);
-	glm::mat4 ProjectionMatrix = glm::perspective(45.0f, 1024.0f / 768.0f, 0.1f, 40.0f);
+
 	init_box();
 	init_paddles();
 	p1 = glm::vec3(1.0);
@@ -513,7 +521,7 @@ int main(void)
 		//computeMatricesFromInputs();
 		//glm::mat4 ProjectionMatrix = getProjectionMatrix();
 		//glm::mat4 ViewMatrix = getViewMatrix();
-
+		glm::mat4 ProjectionMatrix = glm::perspective(45.0f, 1024.0f / 768.0f, 0.1f, 40.0f);
 		glm::mat4 ViewMatrix = glm::lookAt(glm::vec3(-6.0, 6.0, 8.0), glm::vec3(box_width / 2.0, box_height / 2.0, box_depth / 2.0), glm::vec3(0, 1, 0));
 
 		glm::mat4 MVP = ProjectionMatrix * ViewMatrix * ModelMatrix;
