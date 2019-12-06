@@ -26,6 +26,8 @@ GLuint MatrixID;
 GLuint ViewMatrixID;
 GLuint ModelMatrixID;
 
+float paddleSpeed = 0.14f;
+
 // for bounding box
 GLuint box_vertexbuffer;
 GLuint box_colorbuffer;
@@ -39,17 +41,34 @@ glm::mat4 vMatrix = glm::lookAt(glm::vec3(-6.0, 6.0, 8.0), glm::vec3(box_width /
 
 // for paddles
 GLuint p1_vertexbuffer;
-glm::vec3 p1;
-glm::vec3 p1Pos = glm::vec3(1.0,1.0,1.0);
-
+glm::vec3 p1Pos = glm::vec3(1.0, 1.0, 1.0);
 GLuint p2_vertexbuffer;
-glm::vec3 p2;
-glm::vec3 p2Pos = glm::vec3(box_width - 1.0,1.0,1.0);
+glm::vec3 p2Pos = glm::vec3(10.0 * box_width - 1.0, 1.0, 1.0);
+
+// for THE BALL
+GLuint ball_vertexBuffer;
+glm::vec3 ballPos = glm::vec3(box_width / 2.0, box_height / 2.0, box_depth / 2.0); // start in middle
+glm::vec3 ballVel = glm::vec3(1.0, 0.1, 0.1);
 
 void key_callback(GLFWwindow *window, int key, int scancode, int action, int mods)
 {
-	if (key == GLFW_KEY_P && (action == GLFW_PRESS || action == GLFW_REPEAT))
-		printf("p key pressed");
+	/* 	if (key == GLFW_KEY_W && (action == GLFW_PRESS || action == GLFW_REPEAT))
+		printf("w key pressed\n");
+	if (key == GLFW_KEY_A && (action == GLFW_PRESS || action == GLFW_REPEAT))
+		printf("a key pressed\n");
+	if (key == GLFW_KEY_S && (action == GLFW_PRESS || action == GLFW_REPEAT))
+		printf("s key pressed\n");
+	if (key == GLFW_KEY_D && (action == GLFW_PRESS || action == GLFW_REPEAT))
+		printf("d key pressed\n");
+
+	if (key == GLFW_KEY_UP && (action == GLFW_PRESS || action == GLFW_REPEAT))
+		printf("u key pressed\n");
+	if (key == GLFW_KEY_LEFT && (action == GLFW_PRESS || action == GLFW_REPEAT))
+		printf("l key pressed\n");
+	if (key == GLFW_KEY_DOWN && (action == GLFW_PRESS || action == GLFW_REPEAT))
+		printf("d key pressed\n");
+	if (key == GLFW_KEY_RIGHT && (action == GLFW_PRESS || action == GLFW_REPEAT))
+		printf("r key pressed\n"); */
 }
 
 //----------------------------------------------------------------------------
@@ -226,42 +245,42 @@ void init_paddles()
 	// box geometry with corner at origin
 
 	static const GLfloat p1_vertex_buffer_data[] = {
-		-1.0f, -1.0f, -1.0f, // triangle 1 : begin
-		-1.0f, -1.0f, 1.0f,
-		-1.0f, 1.0f, 1.0f, // triangle 1 : end
-		1.0f, 1.0f, -1.0f, // triangle 2 : begin
-		-1.0f, -1.0f, -1.0f,
-		-1.0f, 1.0f, -1.0f, // triangle 2 : end
-		1.0f, -1.0f, 1.0f,
-		-1.0f, -1.0f, -1.0f,
-		1.0f, -1.0f, -1.0f,
-		1.0f, 1.0f, -1.0f,
-		1.0f, -1.0f, -1.0f,
-		-1.0f, -1.0f, -1.0f,
-		-1.0f, -1.0f, -1.0f,
-		-1.0f, 1.0f, 1.0f,
-		-1.0f, 1.0f, -1.0f,
-		1.0f, -1.0f, 1.0f,
-		-1.0f, -1.0f, 1.0f,
-		-1.0f, -1.0f, -1.0f,
-		-1.0f, 1.0f, 1.0f,
-		-1.0f, -1.0f, 1.0f,
-		1.0f, -1.0f, 1.0f,
-		1.0f, 1.0f, 1.0f,
-		1.0f, -1.0f, -1.0f,
-		1.0f, 1.0f, -1.0f,
-		1.0f, -1.0f, -1.0f,
-		1.0f, 1.0f, 1.0f,
-		1.0f, -1.0f, 1.0f,
-		1.0f, 1.0f, 1.0f,
-		1.0f, 1.0f, -1.0f,
-		-1.0f, 1.0f, -1.0f,
-		1.0f, 1.0f, 1.0f,
-		-1.0f, 1.0f, -1.0f,
-		-1.0f, 1.0f, 1.0f,
-		1.0f, 1.0f, 1.0f,
-		-1.0f, 1.0f, 1.0f,
-		1.0f, -1.0f, 1.0f};
+		-.5f, -.5f, -.5f, // triangle 1 : begin
+		-.5f, -.5f, .5f,
+		-.5f, .5f, .5f, // triangle 1 : end
+		.5f, .5f, -.5f, // triangle 2 : begin
+		-.5f, -.5f, -.5f,
+		-.5f, .5f, -.5f, // triangle 2 : end
+		.5f, -.5f, .5f,
+		-.5f, -.5f, -.5f,
+		.5f, -.5f, -.5f,
+		.5f, .5f, -.5f,
+		.5f, -.5f, -.5f,
+		-.5f, -.5f, -.5f,
+		-.5f, -.5f, -.5f,
+		-.5f, .5f, .5f,
+		-.5f, .5f, -.5f,
+		.5f, -.5f, .5f,
+		-.5f, -.5f, .5f,
+		-.5f, -.5f, -.5f,
+		-.5f, .5f, .5f,
+		-.5f, -.5f, .5f,
+		.5f, -.5f, .5f,
+		.5f, .5f, .5f,
+		.5f, -.5f, -.5f,
+		.5f, .5f, -.5f,
+		.5f, -.5f, -.5f,
+		.5f, .5f, .5f,
+		.5f, -.5f, .5f,
+		.5f, .5f, .5f,
+		.5f, .5f, -.5f,
+		-.5f, .5f, -.5f,
+		.5f, .5f, .5f,
+		-.5f, .5f, -.5f,
+		-.5f, .5f, .5f,
+		.5f, .5f, .5f,
+		-.5f, .5f, .5f,
+		.5f, -.5f, .5f};
 
 	glGenBuffers(1, &p1_vertexbuffer);
 	glBindBuffer(GL_ARRAY_BUFFER, p1_vertexbuffer);
@@ -272,46 +291,51 @@ void init_paddles()
 	// box geometry with corner at origin
 
 	static const GLfloat p2_vertex_buffer_data[] = {
-		-1.0f, -1.0f, -1.0f, // triangle 1 : begin
-		-1.0f, -1.0f, 1.0f,
-		-1.0f, 1.0f, 1.0f, // triangle 1 : end
-		1.0f, 1.0f, -1.0f, // triangle 2 : begin
-		-1.0f, -1.0f, -1.0f,
-		-1.0f, 1.0f, -1.0f, // triangle 2 : end
-		1.0f, -1.0f, 1.0f,
-		-1.0f, -1.0f, -1.0f,
-		1.0f, -1.0f, -1.0f,
-		1.0f, 1.0f, -1.0f,
-		1.0f, -1.0f, -1.0f,
-		-1.0f, -1.0f, -1.0f,
-		-1.0f, -1.0f, -1.0f,
-		-1.0f, 1.0f, 1.0f,
-		-1.0f, 1.0f, -1.0f,
-		1.0f, -1.0f, 1.0f,
-		-1.0f, -1.0f, 1.0f,
-		-1.0f, -1.0f, -1.0f,
-		-1.0f, 1.0f, 1.0f,
-		-1.0f, -1.0f, 1.0f,
-		1.0f, -1.0f, 1.0f,
-		1.0f, 1.0f, 1.0f,
-		1.0f, -1.0f, -1.0f,
-		1.0f, 1.0f, -1.0f,
-		1.0f, -1.0f, -1.0f,
-		1.0f, 1.0f, 1.0f,
-		1.0f, -1.0f, 1.0f,
-		1.0f, 1.0f, 1.0f,
-		1.0f, 1.0f, -1.0f,
-		-1.0f, 1.0f, -1.0f,
-		1.0f, 1.0f, 1.0f,
-		-1.0f, 1.0f, -1.0f,
-		-1.0f, 1.0f, 1.0f,
-		1.0f, 1.0f, 1.0f,
-		-1.0f, 1.0f, 1.0f,
-		1.0f, -1.0f, 1.0f};
+		-.5f, -.5f, -.5f, // triangle 1 : begin
+		-.5f, -.5f, .5f,
+		-.5f, .5f, .5f, // triangle 1 : end
+		.5f, .5f, -.5f, // triangle 2 : begin
+		-.5f, -.5f, -.5f,
+		-.5f, .5f, -.5f, // triangle 2 : end
+		.5f, -.5f, .5f,
+		-.5f, -.5f, -.5f,
+		.5f, -.5f, -.5f,
+		.5f, .5f, -.5f,
+		.5f, -.5f, -.5f,
+		-.5f, -.5f, -.5f,
+		-.5f, -.5f, -.5f,
+		-.5f, .5f, .5f,
+		-.5f, .5f, -.5f,
+		.5f, -.5f, .5f,
+		-.5f, -.5f, .5f,
+		-.5f, -.5f, -.5f,
+		-.5f, .5f, .5f,
+		-.5f, -.5f, .5f,
+		.5f, -.5f, .5f,
+		.5f, .5f, .5f,
+		.5f, -.5f, -.5f,
+		.5f, .5f, -.5f,
+		.5f, -.5f, -.5f,
+		.5f, .5f, .5f,
+		.5f, -.5f, .5f,
+		.5f, .5f, .5f,
+		.5f, .5f, -.5f,
+		-.5f, .5f, -.5f,
+		.5f, .5f, .5f,
+		-.5f, .5f, -.5f,
+		-.5f, .5f, .5f,
+		.5f, .5f, .5f,
+		-.5f, .5f, .5f,
+		.5f, -.5f, .5f};
 
 	glGenBuffers(1, &p2_vertexbuffer);
 	glBindBuffer(GL_ARRAY_BUFFER, p2_vertexbuffer);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(p2_vertex_buffer_data), p2_vertex_buffer_data, GL_STATIC_DRAW);
+}
+
+void init_ball()
+{
+
 }
 
 void draw_box(glm::mat4 MVP)
@@ -352,11 +376,13 @@ void draw_box(glm::mat4 MVP)
 	glDisableVertexAttribArray(1);
 }
 
-void draw_p1(glm::mat4 MVP)
+void draw_p1()
 {
 	// make this transform available to shaders
 
-	glm::mat4 p1MVP = pMatrix * vMatrix * glm::translate(glm::mat4(1.0f), p1Pos);
+	//glm::translate(glm::mat4(1.0f), p1Pos)
+
+	glm::mat4 p1MVP = pMatrix * vMatrix * glm::translate(glm::scale(glm::mat4(1.0f), glm::vec3(0.1, 1.0, 1.0)), p1Pos);
 
 	glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &p1MVP[0][0]);
 
@@ -377,13 +403,12 @@ void draw_p1(glm::mat4 MVP)
 	glDisableVertexAttribArray(0);
 }
 
-void draw_p2(glm::mat4 MVP)
+void draw_p2()
 {
 	// make this transform available to shaders
 
-	glm::mat4 p1MVP = pMatrix * vMatrix * glm::translate(glm::mat4(1.0f), p2Pos);
-
-	glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &p1MVP[0][0]);
+	glm::mat4 p2MVP = pMatrix * vMatrix * glm::translate(glm::scale(glm::mat4(1.0f), glm::vec3(0.1, 1.0, 1.0)), p2Pos);
+	glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &p2MVP[0][0]);
 
 	// 1st attribute buffer : vertices
 
@@ -400,6 +425,32 @@ void draw_p2(glm::mat4 MVP)
 	glDrawArrays(GL_TRIANGLES, 0, 36);
 
 	glDisableVertexAttribArray(0);
+}
+
+void draw_ball()
+{
+
+}
+
+void clampPositions()
+{
+	if (p2Pos.y > box_height)
+		p2Pos.y = box_height;
+	if (p2Pos.y < 0)
+		p2Pos.y = 0;
+	if (p2Pos.z > box_depth)
+		p2Pos.z = box_depth;
+	if (p2Pos.z < 0)
+		p2Pos.z = 0;
+
+	if (p1Pos.y > box_height)
+		p1Pos.y = box_height;
+	if (p1Pos.y < 0)
+		p1Pos.y = 0;
+	if (p1Pos.z > box_depth)
+		p1Pos.z = box_depth;
+	if (p1Pos.z < 0)
+		p1Pos.z = 0;
 }
 
 int main(void)
@@ -419,7 +470,7 @@ int main(void)
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
 	// Open a window and create its OpenGL context
-	window = glfwCreateWindow(1024, 768, "Tutorial 07 - Model Loading", NULL, NULL);
+	window = glfwCreateWindow(1024, 768, "3D Pong Simulator 2019", NULL, NULL);
 	if (window == NULL)
 	{
 		fprintf(stderr, "Failed to open GLFW window. If you have an Intel GPU, they are not 3.3 compatible. Try the 2.1 version of the tutorials.\n");
@@ -506,10 +557,37 @@ int main(void)
 
 	init_box();
 	init_paddles();
-	p1 = glm::vec3(1.0);
-	p2 = glm::vec3(3.0);
+	init_ball();
+
 	do
 	{
+		/*****************************************/
+		/*****************************************/
+		/*****************************************/
+		if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
+			p2Pos.y += paddleSpeed;
+		if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS)
+			p2Pos.z -= paddleSpeed;
+		if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
+			p2Pos.y -= paddleSpeed;
+		if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS)
+			p2Pos.z += paddleSpeed;
+
+		if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+			p1Pos.y += paddleSpeed;
+		if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+			p1Pos.z -= paddleSpeed;
+		if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+			p1Pos.y -= paddleSpeed;
+		if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+			p1Pos.z += paddleSpeed;
+
+		//Clamp those bad boys
+		clampPositions();
+
+		/*****************************************/
+		/*****************************************/
+		/*****************************************/
 
 		// Clear the screen
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -521,13 +599,14 @@ int main(void)
 		//computeMatricesFromInputs();
 		//glm::mat4 ProjectionMatrix = getProjectionMatrix();
 		//glm::mat4 ViewMatrix = getViewMatrix();
-		glm::mat4 ProjectionMatrix = glm::perspective(45.0f, 1024.0f / 768.0f, 0.1f, 40.0f);
-		glm::mat4 ViewMatrix = glm::lookAt(glm::vec3(-6.0, 6.0, 8.0), glm::vec3(box_width / 2.0, box_height / 2.0, box_depth / 2.0), glm::vec3(0, 1, 0));
+		glm::mat4 ProjectionMatrix = pMatrix;
+		glm::mat4 ViewMatrix = vMatrix;
 
 		glm::mat4 MVP = ProjectionMatrix * ViewMatrix * ModelMatrix;
 		draw_box(MVP);
-		draw_p1(MVP);
-		draw_p2(MVP);
+		draw_p1();
+		draw_p2();
+		draw_ball();
 
 		// Send our transformation to the currently bound shader,
 		// in the "MVP" uniform
