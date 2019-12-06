@@ -26,7 +26,7 @@ GLuint MatrixID;
 GLuint ViewMatrixID;
 GLuint ModelMatrixID;
 
-float paddleSpeed = 0.14f;
+float paddleSpeed = 0.1f;
 
 // for bounding box
 GLuint box_vertexbuffer;
@@ -48,7 +48,7 @@ glm::vec3 p2Pos = glm::vec3(10.0 * box_width - 1.0, 1.0, 1.0);
 // for THE BALL
 GLuint ball_vertexBuffer;
 glm::vec3 ballPos = glm::vec3(box_width / 2.0, box_height / 2.0, box_depth / 2.0); // start in middle
-glm::vec3 ballVel = glm::vec3(0.3, 0.0, 0.0);
+glm::vec3 ballVel = glm::vec3(0.03, 0.01, 0.01);
 
 
 //----------------------------------------------------------------------------
@@ -236,10 +236,10 @@ void init_paddles()
 void init_ball()
 {
 	static const GLfloat ball_vertex_buffer_data[] = {
-		box_width,
+		box_width * 0.1,
 		0.0f,
-		box_depth,
-		box_width,
+		box_depth * 0.1,
+		box_width * 0.1,
 		0.0f,
 		0.0f,
 	};
@@ -383,11 +383,24 @@ void clampPositions()
 	if (p1Pos.z < .5)
 		p1Pos.z = .5;
 
+	//ball
 	if (ballPos.x > box_width) {
-		ballVel *= glm::vec3(-1.0);
+		ballVel.x *= -1.0;
 	}
 	if (ballPos.x < 0 ) {
-		ballVel *= glm::vec3(-1.0);
+		ballVel.x *= -1.0;
+	}
+	if (ballPos.y > box_height) {
+		ballVel.y *= -1.0;
+	}
+	if (ballPos.y < 0) {
+		ballVel.y *= -1.0;
+	}
+	if (ballPos.z > box_depth) {
+		ballVel.z *= -1.0;
+	}
+	if (ballPos.z < 0) {
+		ballVel.z *= -1.0;
 	}
 }
 
