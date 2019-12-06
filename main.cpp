@@ -37,7 +37,7 @@ float box_depth = 7.0;
 
 //paddle proj and viewmatrices
 glm::mat4 pMatrix = glm::perspective(45.0f, 1024.0f / 768.0f, 0.1f, 40.0f);
-glm::mat4 vMatrix = glm::lookAt(glm::vec3(-6.0, 6.0, 8.0), glm::vec3(box_width / 2.0, box_height / 2.0, box_depth / 2.0), glm::vec3(0, 1, 0));
+glm::mat4 vMatrix = glm::lookAt(glm::vec3(-6.0, 6.0, box_depth + 2.0), glm::vec3(box_width / 2.0, box_height / 2.0, box_depth / 2.0), glm::vec3(0, 1, 0));
 
 // for paddles
 GLuint p1_vertexbuffer;
@@ -48,28 +48,8 @@ glm::vec3 p2Pos = glm::vec3(10.0 * box_width - 1.0, 1.0, 1.0);
 // for THE BALL
 GLuint ball_vertexBuffer;
 glm::vec3 ballPos = glm::vec3(box_width / 2.0, box_height / 2.0, box_depth / 2.0); // start in middle
-glm::vec3 ballVel = glm::vec3(1.0, 0.1, 0.1);
+glm::vec3 ballVel = glm::vec3(0.3, 0.0, 0.0);
 
-void key_callback(GLFWwindow *window, int key, int scancode, int action, int mods)
-{
-	/* 	if (key == GLFW_KEY_W && (action == GLFW_PRESS || action == GLFW_REPEAT))
-		printf("w key pressed\n");
-	if (key == GLFW_KEY_A && (action == GLFW_PRESS || action == GLFW_REPEAT))
-		printf("a key pressed\n");
-	if (key == GLFW_KEY_S && (action == GLFW_PRESS || action == GLFW_REPEAT))
-		printf("s key pressed\n");
-	if (key == GLFW_KEY_D && (action == GLFW_PRESS || action == GLFW_REPEAT))
-		printf("d key pressed\n");
-
-	if (key == GLFW_KEY_UP && (action == GLFW_PRESS || action == GLFW_REPEAT))
-		printf("u key pressed\n");
-	if (key == GLFW_KEY_LEFT && (action == GLFW_PRESS || action == GLFW_REPEAT))
-		printf("l key pressed\n");
-	if (key == GLFW_KEY_DOWN && (action == GLFW_PRESS || action == GLFW_REPEAT))
-		printf("d key pressed\n");
-	if (key == GLFW_KEY_RIGHT && (action == GLFW_PRESS || action == GLFW_REPEAT))
-		printf("r key pressed\n"); */
-}
 
 //----------------------------------------------------------------------------
 
@@ -158,86 +138,6 @@ void init_box()
 	glBindBuffer(GL_ARRAY_BUFFER, box_vertexbuffer);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(box_vertex_buffer_data), box_vertex_buffer_data, GL_STATIC_DRAW);
 
-	// "axis" edges are colored, rest are gray
-
-	static const GLfloat box_color_buffer_data[] = {
-		1.0f,
-		0.0f,
-		0.0f, // X axis is red
-		1.0f,
-		0.0f,
-		0.0f,
-		0.0f,
-		1.0f,
-		0.0f, // Y axis is green
-		0.0f,
-		1.0f,
-		0.0f,
-		0.0f,
-		0.0f,
-		1.0f, // Z axis is blue
-		0.0f,
-		0.0f,
-		1.0f,
-		0.5f,
-		0.5f,
-		0.5f, // all other edges gray
-		0.5f,
-		0.5f,
-		0.5f,
-		0.5f,
-		0.5f,
-		0.5f,
-		0.5f,
-		0.5f,
-		0.5f,
-		0.5f,
-		0.5f,
-		0.5f,
-		0.5f,
-		0.5f,
-		0.5f,
-		0.5f,
-		0.5f,
-		0.5f,
-		0.5f,
-		0.5f,
-		0.5f,
-		0.5f,
-		0.5f,
-		0.5f,
-		0.5f,
-		0.5f,
-		0.5f,
-		0.5f,
-		0.5f,
-		0.5f,
-		0.5f,
-		0.5f,
-		0.5f,
-		0.5f,
-		0.5f,
-		0.5f,
-		0.5f,
-		0.5f,
-		0.5f,
-		0.5f,
-		0.5f,
-		0.5f,
-		0.5f,
-		0.5f,
-		0.5f,
-		0.5f,
-		0.5f,
-		0.5f,
-		0.5f,
-		0.5f,
-		0.5f,
-	};
-
-	glGenBuffers(1, &box_colorbuffer);
-	glBindBuffer(GL_ARRAY_BUFFER, box_colorbuffer);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(box_color_buffer_data), box_color_buffer_data, GL_STATIC_DRAW);
 }
 
 void init_paddles()
@@ -335,7 +235,18 @@ void init_paddles()
 
 void init_ball()
 {
+	static const GLfloat ball_vertex_buffer_data[] = {
+		box_width,
+		0.0f,
+		box_depth,
+		box_width,
+		0.0f,
+		0.0f,
+	};
 
+	glGenBuffers(1, &ball_vertexBuffer);
+	glBindBuffer(GL_ARRAY_BUFFER, ball_vertexBuffer);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(ball_vertex_buffer_data), ball_vertex_buffer_data, GL_STATIC_DRAW);
 }
 
 void draw_box(glm::mat4 MVP)
@@ -429,28 +340,55 @@ void draw_p2()
 
 void draw_ball()
 {
+		// make this transform available to shaders
 
+	glm::mat4 ballMVP = pMatrix * vMatrix * glm::translate(glm::mat4(1.0), ballPos);
+	glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &ballMVP[0][0]);
+
+	// 1st attribute buffer : vertices
+
+	glEnableVertexAttribArray(0);
+	glBindBuffer(GL_ARRAY_BUFFER, ball_vertexBuffer);
+	glVertexAttribPointer(0,		// attribute. 0 to match the layout in the shader.
+						  3,		// size
+						  GL_FLOAT, // type
+						  GL_FALSE, // normalized?
+						  0,		// stride
+						  (void *)0 // array buffer offset
+	);
+
+	glDrawArrays(GL_TRIANGLES, 0, 36);
+
+	glDisableVertexAttribArray(0);
 }
 
 void clampPositions()
 {
-	if (p2Pos.y > box_height)
-		p2Pos.y = box_height;
-	if (p2Pos.y < 0)
-		p2Pos.y = 0;
-	if (p2Pos.z > box_depth)
-		p2Pos.z = box_depth;
-	if (p2Pos.z < 0)
-		p2Pos.z = 0;
+	//p2
+	if (p2Pos.y > box_height - .5)
+		p2Pos.y = box_height - .5;
+	if (p2Pos.y < .5)
+		p2Pos.y = .5;
+	if (p2Pos.z > box_depth - .5)
+		p2Pos.z = box_depth - .5;
+	if (p2Pos.z < .5)
+		p2Pos.z = .5;
+	//p1
+	if (p1Pos.y > box_height - .5)
+		p1Pos.y = box_height - .5;
+	if (p1Pos.y < .5)
+		p1Pos.y = .5;
+	if (p1Pos.z > box_depth - .5)
+		p1Pos.z = box_depth - .5;
+	if (p1Pos.z < .5)
+		p1Pos.z = .5;
 
-	if (p1Pos.y > box_height)
-		p1Pos.y = box_height;
-	if (p1Pos.y < 0)
-		p1Pos.y = 0;
-	if (p1Pos.z > box_depth)
-		p1Pos.z = box_depth;
-	if (p1Pos.z < 0)
-		p1Pos.z = 0;
+	if (ballPos.x > box_width) {
+		ballVel *= glm::vec3(-1.0);
+	}
+	if (ballPos.x < 0 ) {
+		ballVel *= glm::vec3(-1.0);
+	}
 }
 
 int main(void)
@@ -495,7 +433,6 @@ int main(void)
 	// Hide the mouse and enable unlimited mouvement
 	//glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
-	glfwSetKeyCallback(window, key_callback);
 
 	// Set the mouse at the center of the screen
 	glfwPollEvents();
@@ -584,6 +521,12 @@ int main(void)
 
 		//Clamp those bad boys
 		clampPositions();
+
+		/*****************************************/
+		/*****************************************/
+		/*****************************************/
+
+		ballPos += ballVel;
 
 		/*****************************************/
 		/*****************************************/
