@@ -73,6 +73,8 @@ std::vector<glm::vec3> ball_vertices;
 std::vector<glm::vec2> ball_uvs;
 std::vector<glm::vec3> ball_normals; // Won't be used at the moment.
 
+char winText[256] = "";
+
 //----------------------------------------------------------------------------
 
 // corner "origin" is at (0, 0, 0) -- must translate to center
@@ -519,6 +521,20 @@ int main(void)
 		char text[256];
 		sprintf(text,"  P1 score: %d             P2 Score: %d", p1Score, p2Score );
 		printText2D(text, 10, 30, 20);
+
+		
+		if (p1Score >= 5) {
+			sprintf(winText, "Player 1 won! Play another round!");
+			p1Score = 0;
+			p2Score = 0;
+			glm::vec3 ballVel = glm::vec3(0.04, 0.01, 0.01);
+		} else if (p2Score >= 5) {
+			sprintf(winText, "Player 2 won! Play another round!");
+			p1Score = 0;
+			p2Score = 0;
+			glm::vec3 ballVel = glm::vec3(0.04, 0.01, 0.01);
+		}
+		printText2D(winText, 50, 500, 20);
 
 		// Send our transformation to the currently bound shader,
 		// in the "MVP" uniform
