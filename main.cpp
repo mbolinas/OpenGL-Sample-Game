@@ -20,6 +20,7 @@ using namespace glm;
 #include <common/texture.hpp>
 #include <common/controls.hpp>
 #include <common/objloader.hpp>
+#include <common/text2D.hpp>
 
 GLuint programID;
 GLuint MatrixID;
@@ -57,6 +58,9 @@ glm::vec3 p2Pos = glm::vec3(box_width, box_height / 2.0, box_depth / 2.0);
 std::vector<glm::vec3> p2_vertices;
 std::vector<glm::vec2> p2_uvs;
 std::vector<glm::vec3> p2_normals; // Won't be used at the moment.
+
+int p1Score = 0;
+int p2Score = 0;
 
 // for THE BALL
 GLuint ball_vertexBuffer;
@@ -312,7 +316,7 @@ void clampPositions()
 		p1Pos.z = .5;
 }
 
-void updateBall() {
+void update_ball() {
 	//ball
 	if (ballPos.x > box_width) {
 		ballVel.x *= -1.0;
@@ -440,7 +444,7 @@ int main(void)
 	init_box();
 	init_paddles();
 	init_ball();
-
+	initText2D("font.dds");
 	do
 	{
 		/*****************************************/
@@ -496,6 +500,9 @@ int main(void)
 		draw_p2();
 		draw_ball();
 		update_ball();
+		char text[256];
+		sprintf(text,"  P1 score: %d             P2 Score: %d", p1Score, p2Score );
+		//printText2D(text, 10, 30, 20);
 
 		// Send our transformation to the currently bound shader,
 		// in the "MVP" uniform
