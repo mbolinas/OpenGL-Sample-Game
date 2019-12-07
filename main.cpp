@@ -279,7 +279,7 @@ void draw_p2()
 
 void draw_ball()
 {
-	glm::mat4 ballMVP = pMatrix * vMatrix * glm::translate(glm::mat4(1.0), ballPos);
+	glm::mat4 ballMVP = pMatrix * vMatrix * glm::scale(glm::translate(glm::mat4(1.0), ballPos), glm::vec3(1.0));
 	glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &ballMVP[0][0]);
 
 	glEnableVertexAttribArray(0);
@@ -465,6 +465,22 @@ int main(void)
 	initText2D("font.dds");
 	do
 	{
+		char text[256];
+		sprintf(text,"  P1 score: %d             P2 Score: %d", p1Score, p2Score );
+
+		if (p1Score >= 5) {
+			sprintf(winText, "Player 1 won! Play another round!");
+			p1Score = 0;
+			p2Score = 0;
+			glm::vec3 ballVel = glm::vec3(0.04, 0.01, 0.01);
+		} else if (p2Score >= 5) {
+			sprintf(winText, "Player 2 won! Play another round!");
+			p1Score = 0;
+			p2Score = 0;
+			glm::vec3 ballVel = glm::vec3(0.04, 0.01, 0.01);
+		}
+		
+		
 		/*****************************************/
 		/*****************************************/
 		/*****************************************/
@@ -501,7 +517,8 @@ int main(void)
 
 		// Clear the screen
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
+		printText2D(text, 10, 30, 20);
+		printText2D(winText, 50, 500, 20);
 		// Use our shader
 		glUseProgram(programID);
 
@@ -510,32 +527,17 @@ int main(void)
 		//glm::mat4 ProjectionMatrix = getProjectionMatrix();
 		//glm::mat4 ViewMatrix = getViewMatrix();
 		glm::mat4 ProjectionMatrix = pMatrix;
+		
 		glm::mat4 ViewMatrix = vMatrix;
-
 		glm::mat4 MVP = ProjectionMatrix * ViewMatrix * ModelMatrix;
+		
 		draw_box(MVP);
+		
 		draw_p1();
 		draw_p2();
 		draw_ball();
 		update_ball();
-		char text[256];
-		sprintf(text,"  P1 score: %d             P2 Score: %d", p1Score, p2Score );
-		printText2D(text, 10, 30, 20);
-
 		
-		if (p1Score >= 5) {
-			sprintf(winText, "Player 1 won! Play another round!");
-			p1Score = 0;
-			p2Score = 0;
-			glm::vec3 ballVel = glm::vec3(0.04, 0.01, 0.01);
-		} else if (p2Score >= 5) {
-			sprintf(winText, "Player 2 won! Play another round!");
-			p1Score = 0;
-			p2Score = 0;
-			glm::vec3 ballVel = glm::vec3(0.04, 0.01, 0.01);
-		}
-		printText2D(winText, 50, 500, 20);
-
 		// Send our transformation to the currently bound shader,
 		// in the "MVP" uniform
 		glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &MVP[0][0]);
