@@ -41,15 +41,20 @@ glm::mat4 vMatrix = glm::lookAt(glm::vec3(-6.0, 6.0, box_depth + 2.0), glm::vec3
 
 // for paddles
 GLuint p1_vertexbuffer;
+GLuint p1_uvbuffer;
 glm::vec3 p1Pos = glm::vec3(1.0, 1.0, 1.0);
 GLuint p2_vertexbuffer;
+GLuint p2_uvbuffer;
 glm::vec3 p2Pos = glm::vec3(10.0 * box_width - 1.0, 1.0, 1.0);
 
 // for THE BALL
 GLuint ball_vertexBuffer;
+GLuint ball_uvbuffer;
 glm::vec3 ballPos = glm::vec3(box_width / 2.0, box_height / 2.0, box_depth / 2.0); // start in middle
 glm::vec3 ballVel = glm::vec3(0.03, 0.01, 0.01);
-
+std::vector<glm::vec3> ball_vertices;
+std::vector<glm::vec2> ball_uvs;
+std::vector<glm::vec3> ball_normals; // Won't be used at the moment.
 
 //----------------------------------------------------------------------------
 
@@ -235,18 +240,15 @@ void init_paddles()
 
 void init_ball()
 {
-	static const GLfloat ball_vertex_buffer_data[] = {
-		box_width * 0.1,
-		0.0f,
-		box_depth * 0.1,
-		box_width * 0.1,
-		0.0f,
-		0.0f,
-	};
+	bool res = loadOBJ("apple.obj", ball_vertices, ball_uvs, ball_normals);
 
 	glGenBuffers(1, &ball_vertexBuffer);
 	glBindBuffer(GL_ARRAY_BUFFER, ball_vertexBuffer);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(ball_vertex_buffer_data), ball_vertex_buffer_data, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, ball_vertices.size() * sizeof(glm::vec3), &ball_vertices[0], GL_STATIC_DRAW);
+
+	glGenBuffers(1, &ball_uvbuffer);
+	glBindBuffer(GL_ARRAY_BUFFER, ball_uvbuffer);
+	glBufferData(GL_ARRAY_BUFFER, ball_uvs.size() * sizeof(glm::vec2), &ball_uvs[0], GL_STATIC_DRAW);
 }
 
 void draw_box(glm::mat4 MVP)
@@ -289,15 +291,8 @@ void draw_box(glm::mat4 MVP)
 
 void draw_p1()
 {
-	// make this transform available to shaders
-
-	//glm::translate(glm::mat4(1.0f), p1Pos)
-
 	glm::mat4 p1MVP = pMatrix * vMatrix * glm::translate(glm::scale(glm::mat4(1.0f), glm::vec3(0.1, 1.0, 1.0)), p1Pos);
-
 	glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &p1MVP[0][0]);
-
-	// 1st attribute buffer : vertices
 
 	glEnableVertexAttribArray(0);
 	glBindBuffer(GL_ARRAY_BUFFER, p1_vertexbuffer);
@@ -316,12 +311,8 @@ void draw_p1()
 
 void draw_p2()
 {
-	// make this transform available to shaders
-
 	glm::mat4 p2MVP = pMatrix * vMatrix * glm::translate(glm::scale(glm::mat4(1.0f), glm::vec3(0.1, 1.0, 1.0)), p2Pos);
 	glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &p2MVP[0][0]);
-
-	// 1st attribute buffer : vertices
 
 	glEnableVertexAttribArray(0);
 	glBindBuffer(GL_ARRAY_BUFFER, p2_vertexbuffer);
@@ -340,12 +331,8 @@ void draw_p2()
 
 void draw_ball()
 {
-		// make this transform available to shaders
-
 	glm::mat4 ballMVP = pMatrix * vMatrix * glm::translate(glm::mat4(1.0), ballPos);
 	glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &ballMVP[0][0]);
-
-	// 1st attribute buffer : vertices
 
 	glEnableVertexAttribArray(0);
 	glBindBuffer(GL_ARRAY_BUFFER, ball_vertexBuffer);
@@ -357,7 +344,7 @@ void draw_ball()
 						  (void *)0 // array buffer offset
 	);
 
-	glDrawArrays(GL_TRIANGLES, 0, 36);
+	glDrawArrays(GL_TRIANGLES, 0, ball_vertices.size());
 
 	glDisableVertexAttribArray(0);
 }
