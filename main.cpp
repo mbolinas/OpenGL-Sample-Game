@@ -61,17 +61,22 @@ std::vector<glm::vec3> p2_vertices;
 std::vector<glm::vec2> p2_uvs;
 std::vector<glm::vec3> p2_normals; // Won't be used at the moment.
 
+
 int p1Score = 0;
 int p2Score = 0;
 
 // for THE BALL
 GLuint ball_vertexBuffer;
-GLuint ball_uvbuffer;
+GLuint ball_uvBuffer;
 glm::vec3 ballPos = glm::vec3(box_width / 2.0, box_height / 2.0, box_depth / 2.0); // start in middle
 glm::vec3 ballVel = glm::vec3(0.04, 0.01, 0.01);
 std::vector<glm::vec3> ball_vertices;
 std::vector<glm::vec2> ball_uvs;
 std::vector<glm::vec3> ball_normals; // Won't be used at the moment.
+
+
+GLuint ballTexture;
+GLuint paddleTexture;
 
 char winText[256] = "";
 
@@ -161,7 +166,6 @@ void init_box()
 	glGenBuffers(1, &box_vertexbuffer);
 	glBindBuffer(GL_ARRAY_BUFFER, box_vertexbuffer);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(box_vertex_buffer_data), box_vertex_buffer_data, GL_STATIC_DRAW);
-
 }
 
 void init_paddles()
@@ -194,8 +198,8 @@ void init_ball()
 	glBindBuffer(GL_ARRAY_BUFFER, ball_vertexBuffer);
 	glBufferData(GL_ARRAY_BUFFER, ball_vertices.size() * sizeof(glm::vec3), &ball_vertices[0], GL_STATIC_DRAW);
 
-	glGenBuffers(1, &ball_uvbuffer);
-	glBindBuffer(GL_ARRAY_BUFFER, ball_uvbuffer);
+	glGenBuffers(1, &ball_uvBuffer);
+	glBindBuffer(GL_ARRAY_BUFFER, ball_uvBuffer);
 	glBufferData(GL_ARRAY_BUFFER, ball_uvs.size() * sizeof(glm::vec2), &ball_uvs[0], GL_STATIC_DRAW);
 }
 
@@ -292,9 +296,22 @@ void draw_ball()
 						  (void *)0 // array buffer offset
 	);
 
+	// 2nd attribute buffer : UVs
+	glEnableVertexAttribArray(1);
+	glBindBuffer(GL_ARRAY_BUFFER, ball_uvBuffer);
+	glVertexAttribPointer(
+		1,		  // attribute
+		2,		  // size
+		GL_FLOAT, // type
+		GL_FALSE, // normalized?
+		0,		  // stride
+		(void *)0 // array buffer offset
+	);
+
 	glDrawArrays(GL_TRIANGLES, 0, ball_vertices.size());
 
 	glDisableVertexAttribArray(0);
+	glDisableVertexAttribArray(1);
 }
 
 //clamps paddle positions.
@@ -320,43 +337,44 @@ void clampPositions()
 		p1Pos.z = .5;
 }
 
-void update_ball() {
+void update_ball()
+{
 	//ball
-	if (ballPos.x > box_width) {
+	if (ballPos.x > box_width)
+	{
 		ballVel.x *= -1.05;
 		//p2 check
-		if(p2Pos.z > ballPos.z + 0.64
-			|| p2Pos.z < ballPos.z - 0.64
-			|| p2Pos.y > ballPos.y + 0.2
-			|| p2Pos.y < ballPos.y - 1.4) {
-				p1Score++;
-			}
+		if (p2Pos.z > ballPos.z + 0.64 || p2Pos.z < ballPos.z - 0.64 || p2Pos.y > ballPos.y + 0.2 || p2Pos.y < ballPos.y - 1.4)
+		{
+			p1Score++;
+		}
 	}
-	if (ballPos.x < 0 ) {
+	if (ballPos.x < 0)
+	{
 		ballVel.x *= -1.05;
 		//p1check
-		if(p1Pos.z > ballPos.z + 0.64
-			|| p1Pos.z < ballPos.z - 0.64
-			|| p1Pos.y > ballPos.y + 0.2
-			|| p1Pos.y < ballPos.y - 1.4) {
-				p2Score++;
-			}
+		if (p1Pos.z > ballPos.z + 0.64 || p1Pos.z < ballPos.z - 0.64 || p1Pos.y > ballPos.y + 0.2 || p1Pos.y < ballPos.y - 1.4)
+		{
+			p2Score++;
+		}
 	}
-	if (ballPos.y > box_height) {
+	if (ballPos.y > box_height)
+	{
 		ballVel.y *= -1.0;
 	}
-	if (ballPos.y < 0) {
+	if (ballPos.y < 0)
+	{
 		ballVel.y *= -1.0;
 	}
-	if (ballPos.z > box_depth) {
+	if (ballPos.z > box_depth)
+	{
 		ballVel.z *= -1.0;
 	}
-	if (ballPos.z < 0) {
+	if (ballPos.z < 0)
+	{
 		ballVel.z *= -1.0;
 	}
 }
-
-
 
 int main(void)
 {
@@ -400,7 +418,6 @@ int main(void)
 	// Hide the mouse and enable unlimited mouvement
 	//glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
-
 	// Set the mouse at the center of the screen
 	glfwPollEvents();
 	//glfwSetCursorPos(window, 1024/2, 768/2);
@@ -433,6 +450,8 @@ int main(void)
 
 	// Load the texture
 	GLuint Texture = loadDDS("uvmap.dds");
+	ballTexture = loadDDS("apple.dds");
+	paddleTexture = loadDDS("paddle.dds");
 
 	// Get a handle for our "myTextureSampler" uniform
 	GLuint TextureID = glGetUniformLocation(programID, "myTextureSampler");
@@ -466,21 +485,25 @@ int main(void)
 	do
 	{
 		char text[256];
-		sprintf(text,"  P1 score: %d             P2 Score: %d", p1Score, p2Score );
+		sprintf(text, "  P1 score: %d             P2 Score: %d", p1Score, p2Score);
 
-		if (p1Score >= 5) {
+		if (p1Score >= 5)
+		{
 			sprintf(winText, "Player 1 won! Play another round!");
 			p1Score = 0;
 			p2Score = 0;
-			glm::vec3 ballVel = glm::vec3(0.04, 0.01, 0.01);
-		} else if (p2Score >= 5) {
+			ballVel = glm::vec3(0.04, 0.01, 0.01);
+			ballPos = glm::vec3(box_width/2.0, box_height/2.0, box_depth/2.0);
+		}
+		else if (p2Score >= 5)
+		{
 			sprintf(winText, "Player 2 won! Play another round!");
 			p1Score = 0;
 			p2Score = 0;
-			glm::vec3 ballVel = glm::vec3(0.04, 0.01, 0.01);
+			ballVel = glm::vec3(0.04, 0.01, 0.01);
+			ballPos = glm::vec3(box_width/2.0, box_height/2.0, box_depth/2.0);
 		}
-		
-		
+
 		/*****************************************/
 		/*****************************************/
 		/*****************************************/
@@ -527,17 +550,17 @@ int main(void)
 		//glm::mat4 ProjectionMatrix = getProjectionMatrix();
 		//glm::mat4 ViewMatrix = getViewMatrix();
 		glm::mat4 ProjectionMatrix = pMatrix;
-		
+
 		glm::mat4 ViewMatrix = vMatrix;
 		glm::mat4 MVP = ProjectionMatrix * ViewMatrix * ModelMatrix;
-		
+
 		draw_box(MVP);
-		
+
 		draw_p1();
 		draw_p2();
 		draw_ball();
 		update_ball();
-		
+
 		// Send our transformation to the currently bound shader,
 		// in the "MVP" uniform
 		glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &MVP[0][0]);
