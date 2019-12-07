@@ -28,7 +28,7 @@ GLuint ViewMatrixID;
 GLuint ModelMatrixID;
 
 //legal limit for blood pingpong content
-float paddleSpeed = 0.08f;
+float paddleSpeed = 0.1f;
 
 const float WIN_HEIGHT = 700.0f;
 const float WIN_WIDTH = 1200.0f;
@@ -43,6 +43,8 @@ float box_depth = 7.0;
 //paddle proj and viewmatrices
 glm::mat4 pMatrix = glm::perspective(45.0f, WIN_WIDTH / WIN_HEIGHT, 0.1f, 40.0f);
 glm::mat4 vMatrix = glm::lookAt(glm::vec3(box_width / 2.0, box_height - 1.0, box_depth / 2.0 * 4.0), glm::vec3(box_width / 2.0, box_height / 2.0, box_depth / 2.0), glm::vec3(0, 1, 0));
+//debugmatrix
+//glm::mat4 vMatrix = glm::lookAt(glm::vec3(-box_width, box_height/2.0, box_depth / 2.0), glm::vec3(box_width / 2.0, box_height / 2.0, box_depth / 2.0), glm::vec3(0, 1, 0));
 
 // for paddles
 GLuint p1_vertexBuffer;
@@ -66,7 +68,7 @@ int p2Score = 0;
 GLuint ball_vertexBuffer;
 GLuint ball_uvbuffer;
 glm::vec3 ballPos = glm::vec3(box_width / 2.0, box_height / 2.0, box_depth / 2.0); // start in middle
-glm::vec3 ballVel = glm::vec3(0.03, 0.01, 0.01);
+glm::vec3 ballVel = glm::vec3(0.04, 0.01, 0.01);
 std::vector<glm::vec3> ball_vertices;
 std::vector<glm::vec2> ball_uvs;
 std::vector<glm::vec3> ball_normals; // Won't be used at the moment.
@@ -320,9 +322,23 @@ void update_ball() {
 	//ball
 	if (ballPos.x > box_width) {
 		ballVel.x *= -1.0;
+		//p2 check
+		if(p2Pos.z > ballPos.z + 0.64
+			|| p2Pos.z < ballPos.z - 0.64
+			|| p2Pos.y > ballPos.y + 0.2
+			|| p2Pos.y < ballPos.y - 1.4) {
+				p1Score++;
+			}
 	}
 	if (ballPos.x < 0 ) {
 		ballVel.x *= -1.0;
+		//p1check
+		if(p1Pos.z > ballPos.z + 0.64
+			|| p1Pos.z < ballPos.z - 0.64
+			|| p1Pos.y > ballPos.y + 0.2
+			|| p1Pos.y < ballPos.y - 1.4) {
+				p2Score++;
+			}
 	}
 	if (ballPos.y > box_height) {
 		ballVel.y *= -1.0;
@@ -502,7 +518,7 @@ int main(void)
 		update_ball();
 		char text[256];
 		sprintf(text,"  P1 score: %d             P2 Score: %d", p1Score, p2Score );
-		//printText2D(text, 10, 30, 20);
+		printText2D(text, 10, 30, 20);
 
 		// Send our transformation to the currently bound shader,
 		// in the "MVP" uniform
