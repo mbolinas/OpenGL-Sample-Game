@@ -289,6 +289,7 @@ void draw_ball()
 	glDisableVertexAttribArray(0);
 }
 
+//clamps paddle positions.
 void clampPositions()
 {
 	//p2
@@ -309,7 +310,9 @@ void clampPositions()
 		p1Pos.z = box_depth - .5;
 	if (p1Pos.z < .5)
 		p1Pos.z = .5;
+}
 
+void updateBall() {
 	//ball
 	if (ballPos.x > box_width) {
 		ballVel.x *= -1.0;
@@ -330,6 +333,8 @@ void clampPositions()
 		ballVel.z *= -1.0;
 	}
 }
+
+
 
 int main(void)
 {
@@ -490,6 +495,7 @@ int main(void)
 		draw_p1();
 		draw_p2();
 		draw_ball();
+		update_ball();
 
 		// Send our transformation to the currently bound shader,
 		// in the "MVP" uniform
