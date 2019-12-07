@@ -26,7 +26,11 @@ GLuint MatrixID;
 GLuint ViewMatrixID;
 GLuint ModelMatrixID;
 
-float paddleSpeed = 0.1f;
+//legal limit for blood pingpong content
+float paddleSpeed = 0.08f;
+
+const float WIN_HEIGHT = 700.0f;
+const float WIN_WIDTH = 1200.0f;
 
 // for bounding box
 GLuint box_vertexbuffer;
@@ -36,16 +40,23 @@ float box_height = 5.0;
 float box_depth = 7.0;
 
 //paddle proj and viewmatrices
-glm::mat4 pMatrix = glm::perspective(45.0f, 1024.0f / 768.0f, 0.1f, 40.0f);
-glm::mat4 vMatrix = glm::lookAt(glm::vec3(-6.0, 6.0, box_depth + 2.0), glm::vec3(box_width / 2.0, box_height / 2.0, box_depth / 2.0), glm::vec3(0, 1, 0));
+glm::mat4 pMatrix = glm::perspective(45.0f, WIN_WIDTH / WIN_HEIGHT, 0.1f, 40.0f);
+glm::mat4 vMatrix = glm::lookAt(glm::vec3(box_width / 2.0, box_height - 1.0, box_depth / 2.0 * 4.0), glm::vec3(box_width / 2.0, box_height / 2.0, box_depth / 2.0), glm::vec3(0, 1, 0));
 
 // for paddles
-GLuint p1_vertexbuffer;
-GLuint p1_uvbuffer;
-glm::vec3 p1Pos = glm::vec3(1.0, 1.0, 1.0);
-GLuint p2_vertexbuffer;
-GLuint p2_uvbuffer;
-glm::vec3 p2Pos = glm::vec3(10.0 * box_width - 1.0, 1.0, 1.0);
+GLuint p1_vertexBuffer;
+GLuint p1_uvBuffer;
+glm::vec3 p1Pos = glm::vec3(0.0, box_height / 2.0, box_depth / 2.0);
+std::vector<glm::vec3> p1_vertices;
+std::vector<glm::vec2> p1_uvs;
+std::vector<glm::vec3> p1_normals; // Won't be used at the moment.
+
+GLuint p2_vertexBuffer;
+GLuint p2_uvBuffer;
+glm::vec3 p2Pos = glm::vec3(box_width, box_height / 2.0, box_depth / 2.0);
+std::vector<glm::vec3> p2_vertices;
+std::vector<glm::vec2> p2_uvs;
+std::vector<glm::vec3> p2_normals; // Won't be used at the moment.
 
 // for THE BALL
 GLuint ball_vertexBuffer;
@@ -147,95 +158,24 @@ void init_box()
 
 void init_paddles()
 {
-	// box geometry with corner at origin
+	bool res = loadOBJ("paddle.obj", p1_vertices, p1_uvs, p1_normals);
 
-	static const GLfloat p1_vertex_buffer_data[] = {
-		-.5f, -.5f, -.5f, // triangle 1 : begin
-		-.5f, -.5f, .5f,
-		-.5f, .5f, .5f, // triangle 1 : end
-		.5f, .5f, -.5f, // triangle 2 : begin
-		-.5f, -.5f, -.5f,
-		-.5f, .5f, -.5f, // triangle 2 : end
-		.5f, -.5f, .5f,
-		-.5f, -.5f, -.5f,
-		.5f, -.5f, -.5f,
-		.5f, .5f, -.5f,
-		.5f, -.5f, -.5f,
-		-.5f, -.5f, -.5f,
-		-.5f, -.5f, -.5f,
-		-.5f, .5f, .5f,
-		-.5f, .5f, -.5f,
-		.5f, -.5f, .5f,
-		-.5f, -.5f, .5f,
-		-.5f, -.5f, -.5f,
-		-.5f, .5f, .5f,
-		-.5f, -.5f, .5f,
-		.5f, -.5f, .5f,
-		.5f, .5f, .5f,
-		.5f, -.5f, -.5f,
-		.5f, .5f, -.5f,
-		.5f, -.5f, -.5f,
-		.5f, .5f, .5f,
-		.5f, -.5f, .5f,
-		.5f, .5f, .5f,
-		.5f, .5f, -.5f,
-		-.5f, .5f, -.5f,
-		.5f, .5f, .5f,
-		-.5f, .5f, -.5f,
-		-.5f, .5f, .5f,
-		.5f, .5f, .5f,
-		-.5f, .5f, .5f,
-		.5f, -.5f, .5f};
+	glGenBuffers(1, &p1_vertexBuffer);
+	glBindBuffer(GL_ARRAY_BUFFER, p1_vertexBuffer);
+	glBufferData(GL_ARRAY_BUFFER, p1_vertices.size() * sizeof(glm::vec3), &p1_vertices[0], GL_STATIC_DRAW);
 
-	glGenBuffers(1, &p1_vertexbuffer);
-	glBindBuffer(GL_ARRAY_BUFFER, p1_vertexbuffer);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(p1_vertex_buffer_data), p1_vertex_buffer_data, GL_STATIC_DRAW);
+	glGenBuffers(1, &p1_uvBuffer);
+	glBindBuffer(GL_ARRAY_BUFFER, p1_uvBuffer);
+	glBufferData(GL_ARRAY_BUFFER, p1_uvs.size() * sizeof(glm::vec2), &p1_uvs[0], GL_STATIC_DRAW);
 
-	// p2
+	res = loadOBJ("paddle.obj", p2_vertices, p2_uvs, p2_normals);
+	glGenBuffers(1, &p2_vertexBuffer);
+	glBindBuffer(GL_ARRAY_BUFFER, p2_vertexBuffer);
+	glBufferData(GL_ARRAY_BUFFER, p2_vertices.size() * sizeof(glm::vec3), &p2_vertices[0], GL_STATIC_DRAW);
 
-	// box geometry with corner at origin
-
-	static const GLfloat p2_vertex_buffer_data[] = {
-		-.5f, -.5f, -.5f, // triangle 1 : begin
-		-.5f, -.5f, .5f,
-		-.5f, .5f, .5f, // triangle 1 : end
-		.5f, .5f, -.5f, // triangle 2 : begin
-		-.5f, -.5f, -.5f,
-		-.5f, .5f, -.5f, // triangle 2 : end
-		.5f, -.5f, .5f,
-		-.5f, -.5f, -.5f,
-		.5f, -.5f, -.5f,
-		.5f, .5f, -.5f,
-		.5f, -.5f, -.5f,
-		-.5f, -.5f, -.5f,
-		-.5f, -.5f, -.5f,
-		-.5f, .5f, .5f,
-		-.5f, .5f, -.5f,
-		.5f, -.5f, .5f,
-		-.5f, -.5f, .5f,
-		-.5f, -.5f, -.5f,
-		-.5f, .5f, .5f,
-		-.5f, -.5f, .5f,
-		.5f, -.5f, .5f,
-		.5f, .5f, .5f,
-		.5f, -.5f, -.5f,
-		.5f, .5f, -.5f,
-		.5f, -.5f, -.5f,
-		.5f, .5f, .5f,
-		.5f, -.5f, .5f,
-		.5f, .5f, .5f,
-		.5f, .5f, -.5f,
-		-.5f, .5f, -.5f,
-		.5f, .5f, .5f,
-		-.5f, .5f, -.5f,
-		-.5f, .5f, .5f,
-		.5f, .5f, .5f,
-		-.5f, .5f, .5f,
-		.5f, -.5f, .5f};
-
-	glGenBuffers(1, &p2_vertexbuffer);
-	glBindBuffer(GL_ARRAY_BUFFER, p2_vertexbuffer);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(p2_vertex_buffer_data), p2_vertex_buffer_data, GL_STATIC_DRAW);
+	glGenBuffers(1, &p2_uvBuffer);
+	glBindBuffer(GL_ARRAY_BUFFER, p2_uvBuffer);
+	glBufferData(GL_ARRAY_BUFFER, p2_uvs.size() * sizeof(glm::vec2), &p2_uvs[0], GL_STATIC_DRAW);
 }
 
 void init_ball()
@@ -291,11 +231,11 @@ void draw_box(glm::mat4 MVP)
 
 void draw_p1()
 {
-	glm::mat4 p1MVP = pMatrix * vMatrix * glm::translate(glm::scale(glm::mat4(1.0f), glm::vec3(0.1, 1.0, 1.0)), p1Pos);
+	glm::mat4 p1MVP = pMatrix * vMatrix * glm::scale(glm::translate(glm::mat4(1.0), p1Pos), glm::vec3(10.0));
 	glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &p1MVP[0][0]);
 
 	glEnableVertexAttribArray(0);
-	glBindBuffer(GL_ARRAY_BUFFER, p1_vertexbuffer);
+	glBindBuffer(GL_ARRAY_BUFFER, p1_vertexBuffer);
 	glVertexAttribPointer(0,		// attribute. 0 to match the layout in the shader.
 						  3,		// size
 						  GL_FLOAT, // type
@@ -304,18 +244,18 @@ void draw_p1()
 						  (void *)0 // array buffer offset
 	);
 
-	glDrawArrays(GL_TRIANGLES, 0, 36);
+	glDrawArrays(GL_TRIANGLES, 0, p1_vertices.size());
 
 	glDisableVertexAttribArray(0);
 }
 
 void draw_p2()
 {
-	glm::mat4 p2MVP = pMatrix * vMatrix * glm::translate(glm::scale(glm::mat4(1.0f), glm::vec3(0.1, 1.0, 1.0)), p2Pos);
+	glm::mat4 p2MVP = pMatrix * vMatrix * glm::scale(glm::translate(glm::mat4(1.0), p2Pos), glm::vec3(10.0));
 	glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &p2MVP[0][0]);
 
 	glEnableVertexAttribArray(0);
-	glBindBuffer(GL_ARRAY_BUFFER, p2_vertexbuffer);
+	glBindBuffer(GL_ARRAY_BUFFER, p2_vertexBuffer);
 	glVertexAttribPointer(0,		// attribute. 0 to match the layout in the shader.
 						  3,		// size
 						  GL_FLOAT, // type
@@ -324,7 +264,7 @@ void draw_p2()
 						  (void *)0 // array buffer offset
 	);
 
-	glDrawArrays(GL_TRIANGLES, 0, 36);
+	glDrawArrays(GL_TRIANGLES, 0, p2_vertices.size());
 
 	glDisableVertexAttribArray(0);
 }
@@ -352,19 +292,19 @@ void draw_ball()
 void clampPositions()
 {
 	//p2
-	if (p2Pos.y > box_height - .5)
-		p2Pos.y = box_height - .5;
-	if (p2Pos.y < .5)
-		p2Pos.y = .5;
+	if (p2Pos.y > box_height - 1.2)
+		p2Pos.y = box_height - 1.2;
+	if (p2Pos.y < 0.0)
+		p2Pos.y = 0.0;
 	if (p2Pos.z > box_depth - .5)
 		p2Pos.z = box_depth - .5;
 	if (p2Pos.z < .5)
 		p2Pos.z = .5;
 	//p1
-	if (p1Pos.y > box_height - .5)
-		p1Pos.y = box_height - .5;
-	if (p1Pos.y < .5)
-		p1Pos.y = .5;
+	if (p1Pos.y > box_height - 1.2)
+		p1Pos.y = box_height - 1.2;
+	if (p1Pos.y < 0.0)
+		p1Pos.y = 0.0;
 	if (p1Pos.z > box_depth - .5)
 		p1Pos.z = box_depth - .5;
 	if (p1Pos.z < .5)
@@ -408,7 +348,7 @@ int main(void)
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
 	// Open a window and create its OpenGL context
-	window = glfwCreateWindow(1024, 768, "3D Pong Simulator 2019", NULL, NULL);
+	window = glfwCreateWindow(WIN_WIDTH, WIN_HEIGHT, "3D Pong Simulator 2019", NULL, NULL);
 	if (window == NULL)
 	{
 		fprintf(stderr, "Failed to open GLFW window. If you have an Intel GPU, they are not 3.3 compatible. Try the 2.1 version of the tutorials.\n");
@@ -512,11 +452,11 @@ int main(void)
 
 		if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
 			p1Pos.y += paddleSpeed;
-		if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+		if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
 			p1Pos.z -= paddleSpeed;
 		if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
 			p1Pos.y -= paddleSpeed;
-		if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+		if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
 			p1Pos.z += paddleSpeed;
 
 		//Clamp those bad boys
