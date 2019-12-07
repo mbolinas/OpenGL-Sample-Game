@@ -321,7 +321,7 @@ void clampPositions()
 void update_ball() {
 	//ball
 	if (ballPos.x > box_width) {
-		ballVel.x *= -1.0;
+		ballVel.x *= -1.05;
 		//p2 check
 		if(p2Pos.z > ballPos.z + 0.64
 			|| p2Pos.z < ballPos.z - 0.64
@@ -331,7 +331,7 @@ void update_ball() {
 			}
 	}
 	if (ballPos.x < 0 ) {
-		ballVel.x *= -1.0;
+		ballVel.x *= -1.05;
 		//p1check
 		if(p1Pos.z > ballPos.z + 0.64
 			|| p1Pos.z < ballPos.z - 0.64
