@@ -180,6 +180,7 @@ void init_paddles()
 	glBindBuffer(GL_ARRAY_BUFFER, p1_uvBuffer);
 	glBufferData(GL_ARRAY_BUFFER, p1_uvs.size() * sizeof(glm::vec2), &p1_uvs[0], GL_STATIC_DRAW);
 
+	//p2
 	res = loadOBJ("paddle.obj", p2_vertices, p2_uvs, p2_normals);
 	glGenBuffers(1, &p2_vertexBuffer);
 	glBindBuffer(GL_ARRAY_BUFFER, p2_vertexBuffer);
@@ -246,6 +247,9 @@ void draw_p1()
 	glm::mat4 p1MVP = pMatrix * vMatrix * glm::scale(glm::translate(glm::mat4(1.0), p1Pos), glm::vec3(10.0));
 	glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &p1MVP[0][0]);
 
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, paddleTexture);
+
 	glEnableVertexAttribArray(0);
 	glBindBuffer(GL_ARRAY_BUFFER, p1_vertexBuffer);
 	glVertexAttribPointer(0,		// attribute. 0 to match the layout in the shader.
@@ -256,15 +260,31 @@ void draw_p1()
 						  (void *)0 // array buffer offset
 	);
 
+	// 2nd attribute buffer : UVs
+	glEnableVertexAttribArray(1);
+	glBindBuffer(GL_ARRAY_BUFFER, p1_uvBuffer);
+	glVertexAttribPointer(
+		1,		  // attribute
+		2,		  // size
+		GL_FLOAT, // type
+		GL_FALSE, // normalized?
+		0,		  // stride
+		(void *)0 // array buffer offset
+	);
+
 	glDrawArrays(GL_TRIANGLES, 0, p1_vertices.size());
 
 	glDisableVertexAttribArray(0);
+	glDisableVertexAttribArray(1);
 }
 
 void draw_p2()
 {
 	glm::mat4 p2MVP = pMatrix * vMatrix * glm::scale(glm::translate(glm::mat4(1.0), p2Pos), glm::vec3(10.0));
 	glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &p2MVP[0][0]);
+
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, paddleTexture);
 
 	glEnableVertexAttribArray(0);
 	glBindBuffer(GL_ARRAY_BUFFER, p2_vertexBuffer);
@@ -276,15 +296,31 @@ void draw_p2()
 						  (void *)0 // array buffer offset
 	);
 
+	// 2nd attribute buffer : UVs
+	glEnableVertexAttribArray(1);
+	glBindBuffer(GL_ARRAY_BUFFER, p2_uvBuffer);
+	glVertexAttribPointer(
+		1,		  // attribute
+		2,		  // size
+		GL_FLOAT, // type
+		GL_FALSE, // normalized?
+		0,		  // stride
+		(void *)0 // array buffer offset
+	);
+
 	glDrawArrays(GL_TRIANGLES, 0, p2_vertices.size());
 
 	glDisableVertexAttribArray(0);
+	glDisableVertexAttribArray(1);
 }
 
 void draw_ball()
 {
 	glm::mat4 ballMVP = pMatrix * vMatrix * glm::scale(glm::translate(glm::mat4(1.0), ballPos), glm::vec3(1.0));
 	glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &ballMVP[0][0]);
+
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, ballTexture);
 
 	glEnableVertexAttribArray(0);
 	glBindBuffer(GL_ARRAY_BUFFER, ball_vertexBuffer);
@@ -446,33 +482,15 @@ int main(void)
 	ModelMatrixID = glGetUniformLocation(programID, "M");
 
 	GLuint LightID = glGetUniformLocation(programID, "LightPosition_worldspace");
-	glm::vec3 lightPos = glm::vec3(15, -15, 0);
+	glm::vec3 lightPos = glm::vec3(15, -15, -10);
+	//glm::vec3 lightPos = glm::vec3(box_width/2.0, 2*box_height, box_depth/2.0);
 
 	// Load the texture
-	GLuint Texture = loadDDS("uvmap.dds");
 	ballTexture = loadDDS("apple.dds");
 	paddleTexture = loadDDS("paddle.dds");
 
 	// Get a handle for our "myTextureSampler" uniform
 	GLuint TextureID = glGetUniformLocation(programID, "myTextureSampler");
-
-	// Read our .obj file
-	std::vector<glm::vec3> vertices;
-	std::vector<glm::vec2> uvs;
-	std::vector<glm::vec3> normals; // Won't be used at the moment.
-	bool res = loadOBJ("hydroflask.obj", vertices, uvs, normals);
-
-	// Load it into a VBO
-
-	GLuint vertexbuffer;
-	glGenBuffers(1, &vertexbuffer);
-	glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
-	glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(glm::vec3), &vertices[0], GL_STATIC_DRAW);
-
-	GLuint uvbuffer;
-	glGenBuffers(1, &uvbuffer);
-	glBindBuffer(GL_ARRAY_BUFFER, uvbuffer);
-	glBufferData(GL_ARRAY_BUFFER, uvs.size() * sizeof(glm::vec2), &uvs[0], GL_STATIC_DRAW);
 
 	glm::mat4 ModelMatrix = glm::mat4(1.0);
 
@@ -567,42 +585,6 @@ int main(void)
 		glUniformMatrix4fv(ViewMatrixID, 1, GL_FALSE, &ViewMatrix[0][0]);
 		glUniformMatrix4fv(ModelMatrixID, 1, GL_FALSE, &ModelMatrix[0][0]);
 
-		// Bind our texture in Texture Unit 0
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, Texture);
-		// Set our "myTextureSampler" sampler to use Texture Unit 0
-		glUniform1i(TextureID, 0);
-
-		// 1rst attribute buffer : vertices
-		glEnableVertexAttribArray(0);
-		glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
-		glVertexAttribPointer(
-			0,		  // attribute
-			3,		  // size
-			GL_FLOAT, // type
-			GL_FALSE, // normalized?
-			0,		  // stride
-			(void *)0 // array buffer offset
-		);
-
-		// 2nd attribute buffer : UVs
-		glEnableVertexAttribArray(1);
-		glBindBuffer(GL_ARRAY_BUFFER, uvbuffer);
-		glVertexAttribPointer(
-			1,		  // attribute
-			2,		  // size
-			GL_FLOAT, // type
-			GL_FALSE, // normalized?
-			0,		  // stride
-			(void *)0 // array buffer offset
-		);
-
-		// Draw the triangle !
-		glDrawArrays(GL_TRIANGLES, 0, vertices.size());
-
-		glDisableVertexAttribArray(0);
-		glDisableVertexAttribArray(1);
-
 		glUniform3f(LightID, lightPos.x, lightPos.y, lightPos.z);
 
 		// Swap buffers
@@ -614,10 +596,7 @@ int main(void)
 		   glfwWindowShouldClose(window) == 0);
 
 	// Cleanup VBO and shader
-	glDeleteBuffers(1, &vertexbuffer);
-	glDeleteBuffers(1, &uvbuffer);
 	glDeleteProgram(programID);
-	glDeleteTextures(1, &Texture);
 	glDeleteVertexArrays(1, &VertexArrayID);
 
 	// Close OpenGL window and terminate GLFW
